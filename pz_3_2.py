@@ -8,6 +8,6 @@ def summ():
     list1.reverse()
     return list1[:-1]
 
-a = summ()
-k = sum(a)
+f = summ()
+k = sum(f)
 print('Сумма двух наибольших введенных чисел равна:', k)
