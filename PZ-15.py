@@ -46,8 +46,12 @@ conn.commit()
 #Примеры использования функций
 add_client("Иванов Иван Иванович", 101, 12, 12000.00)
 add_client("Петров Петр Петрович", 102, 6, 6000.00)
+add_client('Алексеенко Анндрей Приветович', 105, 7, 15000.00)
 
 print(find_client_by_fio("Иванов Иван Иванович"))
+print(find_client_by_fio("Петров Петр Петрович"))
+print(find_client_by_fio("Алексеенко Анндрей Приветович"))
+
 print(find_client_by_code(102))
 print(delete_client_by_rental_cost(6000.00))
 
