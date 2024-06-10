@@ -1,73 +1,96 @@
 import sqlite3
 
-#Подключение к базе данных
-conn = sqlite3.connect('rental.db')
+conn = sqlite3.connect('bank.db')
 cursor = conn.cursor()
 
-#Создание таблицы КЛИЕНТ, если она не существует
-cursor.execute('''CREATE TABLE IF NOT EXISTS CLIENT
-                            (FIO TEXT, code INTEGER, rental_period INTEGER, rental_cost REAL)''')
-
-#Функция для добавления записи в таблицу КЛИЕНТ
-def add_client(fio, code, rental_period, rental_cost):
-    cursor.execute("INSERT INTO CLIENT (FIO, code, rental_period, rental_cost) VALUES (?, ?, ?, ?)", (fio, code, rental_period, rental_cost))
-conn.commit()
-
-#Функция для поиска клиента по ФИО
-def find_client_by_fio(fio):
-    cursor.execute("SELECT * FROM CLIENT WHERE FIO=?", (fio,))
-    return cursor.fetchall()
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS CLIENT (
+        CLIENT_ID INTEGER PRIMARY KEY,
+        FULL_NAME TEXT,
+        ROOM_CODE TEXT,
+        LEASE_TERM INTEGER,
+        TOTAL_COST REAL
+    )
+''')
 
 
+def add_client(client_data):
+    cursor.execute('''
+        INSERT INTO CLIENT (FULL_NAME, ROOM_CODE, LEASE_TERM, TOTAL_COST) VALUES (?, ?, ?, ?)
+    ''', client_data)
+    conn.commit()
+
+clients_data = [
+    ("Иванов Иван Иванович", "10000", 12, 120000.0),
+    ("Петров Петр Петрович", "15000", 24, 180000.0),
+    ("Иванова Екатерина Максимовна", "12000", 15, 190000.0),
+    ("Петрова Елизавета Ивановна", "15000", 12, 130000.0),
+    ("Соколов Максим Генадьевич", "10000", 10, 120000.0),
+    ("Васильев Николай Федорович", "17000", 16, 160000.0),
+    ("Николаев Николай Сергеевич", "10000", 15, 150000.0),
+    ("Петров Александр Алесандрович", "15000", 24, 180000.0),
+    ("Миронов Антон Андреевич", "10000", 12, 120000.0),
+    ("Петрова Дарья Алексеевна", "11000", 20, 160000.0),
+
+]
+
+for data in clients_data:
+    add_client(data)
+
+def show_table_info():
+    cursor.execute("SELECT * FROM CLIENT")
+    table_data = cursor.fetchall()
+    for row in table_data:
+        print(row)
+
+print("\nИнформация о таблице:")
+show_table_info()
 
 
-#Функция для удаления клиента по коду помещения
-def delete_client_by_code(code):
-    cursor.execute("DELETE FROM CLIENT WHERE code=?", (code,))
-conn.commit()
+def find_client_by_fio(full_name):
+    cursor.execute('SELECT * FROM CLIENT WHERE FULL_NAME = ?', (full_name,))
+    client = cursor.fetchone()
+    if client:
+        return client
+    else:
+        return None
 
 
-def edit_client_info(code, new_info):
-    cursor.execute("UPDATE CLIENT SET FIO=?, rental_period=?, rental_cost=? WHERE code=?",
-                   (new_info[0], new_info[2], new_info[3], code))
+def edit_client_by_full_name(full_name, new_data):
+    cursor.execute('''
+        UPDATE CLIENT 
+        SET TOTAL_COST = ?, LEASE_TERM = ?, ROOM_CODE = ?
+        WHERE FULL_NAME = ?
+    ''', (*new_data, full_name))
     conn.commit()
 
 
+def delete_client_by_full_name(full_name):
+    cursor.execute('DELETE FROM CLIENT WHERE FULL_NAME = ?', (full_name,))
+    conn.commit()
 
+full_name_to_search = "Иванов Иван Иванович"
+full_name_to_search1 = "Петрова Елизавета Ивановна"
+full_name_to_search2 = "Васильев Николай Федорович"
+print("\nПоиск клиента по Ф.И.О.:")
+print(find_client_by_fio(full_name_to_search))
+print(find_client_by_fio(full_name_to_search1))
+print(find_client_by_fio(full_name_to_search2))
 
-#Примеры использования функций
-add_client("Иванов Иван Иванович", 101, 12, 12000.00)
-add_client("Петров Петр Петрович", 102, 6, 6000.00)
-add_client('Алексеенко Анндрей Приветович', 105, 7, 15000.00)
+print("\nОтредактируем клиентов по фио")
 
+edit_client_by_full_name("Иванов Иван Иванович", (150000.0, 18, "20000"))
+edit_client_by_full_name("Иванова Екатерина Максимовна", (160000.0, 24, "25000"))
+edit_client_by_full_name("Петров Александр Алесандрович", (130000.0, 12, "18000"))
+print("\nИнформация о таблице после редактирования:\n")
+show_table_info()
 
-print(find_client_by_fio("Иванов Иван Иванович"))
-print(find_client_by_fio("Петров Петр Петрович"))
-print(find_client_by_fio("Алексеенко Анндрей Приветович"))
-print('\n')
-
-edit_client_info(101,["Иванов Иван Иванович", 101, 16, 15000.00])
-edit_client_info(102,["Петров Петр Петрович", 102, 3, 9000.00])
-edit_client_info(105,['Алексеенко Анндрей Приветович', 105, 12, 25000.00])
-
-
-print(find_client_by_fio("Иванов Иван Иванович"))
-print(find_client_by_fio("Петров Петр Петрович"))
-print(find_client_by_fio("Алексеенко Анндрей Приветович"))
-
-print('\n')
-
-
-
-
-print(delete_client_by_code(101))
-print(delete_client_by_code(102))
-print(delete_client_by_code(105))
-
-
-
-conn.close()
-
+print("\nУдалим трех клиентов по фио")
+delete_client_by_full_name("Иванов Иван Иванович")
+delete_client_by_full_name("Петров Петр Петрович")
+delete_client_by_full_name("Сидоров Сидор Сидорович")
+print("\nИнформация о таблице после удаления:")
+show_table_info()
 
 
 
